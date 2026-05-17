@@ -49,17 +49,11 @@ mkdir backbones
 
 ```bash
 # ACIL (CIFAR-100, B50 25 phases)
-python main.py ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 \
-    --gamma 0.1 --buffer-size 8192 \
-    --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
+python main.py ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 --gamma 0.1 --buffer-size 8192 --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
 ```
 ```bash
 # G-ACIL (CIFAR-100, B50 25 phases)
-python main.py G-ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 \
-    --gamma 0.1 --buffer-size 8192 \
-    --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
+python main.py G-ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 --gamma 0.1 --buffer-size 8192 --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
 ```
 ```bash
 # GKEAL (CIFAR-100, B50 10 phases)

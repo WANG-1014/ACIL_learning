@@ -80,6 +80,7 @@ def main(args: Dict[str, Any]):
     else:
         main_device = torch.device("cuda:0")
         all_gpus = None
+    print(f"main_device：{main_device}")
 
     if args["seed"] is not None:
         set_determinism(args["seed"])
