@@ -7,7 +7,7 @@ from .CIFAR import CIFAR100_ as CIFAR100
 from .ImageNet import ImageNet_ as ImageNet
 from typing import Union
 from .Features import Features
-
+from .UCMerced import UCMerced_LandUse_ as UCMerced_LandUse
 
 __all__ = [
     "load_dataset",
@@ -18,6 +18,7 @@ __all__ = [
     "ImageNet",
     "DatasetWrapper",
     "Features",
+    "UCMerced_LandUse",
 ]
 
 dataset_list = {
@@ -25,6 +26,7 @@ dataset_list = {
     "CIFAR-10": CIFAR10,
     "CIFAR-100": CIFAR100,
     "ImageNet-1k": ImageNet,
+    "UCMerced_LandUse": UCMerced_LandUse,
 }
 
 
@@ -39,7 +41,7 @@ def load_dataset(
     shuffle_seed: int | None = None,
     *args,
     **kwargs
-) -> Union[MNIST, CIFAR10, CIFAR100, ImageNet]:
+) -> Union[MNIST, CIFAR10, CIFAR100, ImageNet, UCMerced_LandUse]:
     return dataset_list[name](
         root=root,
         train=train,
