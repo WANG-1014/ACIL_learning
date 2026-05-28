@@ -11,9 +11,9 @@ from .DatasetWrapper import DatasetWrapper
 
 class UCMerced_LandUse_(DatasetWrapper[Tuple[torch.Tensor, int]]):
     num_classes = 21
-    # TODO:修改mean和std
-    mean = (0.485, 0.456, 0.406)
-    std = (0.229, 0.224, 0.225)
+    # 已完成:修改mean和std
+    mean = (0.484235, 0.490064, 0.450510)
+    std = (0.217966, 0.202006, 0.195770)
     image_size = 384  # matches vit_b_16 in models/__init__.py
 
     basic_transform = transforms.Compose(
