@@ -1,232 +1,227 @@
-[中文](README_CN.md) ｜ English
+# 我的README
+- 本仓库是庄老师的持续学习仓库，做课设时把项目存到我的仓库并且改名为ACIL_learning
 
-# Analytic Continual Learning
+## 一、环境配置
+- 1、创建虚拟环境
+    ```
+    conda env create -f environment.yaml
+    conda activate AL
+    ```
+  2、项目可以在GPU上运行，也可以在CPU上运行。我的电脑显卡版本太高了，得用其它版本torch。
 
-Official implementation of the following papers.
+## 二、例程
+### 1、执行老师的例程命令：
+  ```(bash)
+  python main.py ACIL ^
+  --dataset CIFAR-100 ^
+  --base-ratio 0.5 ^
+  --phases 25 ^
+  --data-root ~/dataset ^
+  --IL-batch-size 4096 ^
+  --num-workers 16 ^
+  --backbone resnet32 ^
+  --gamma 0.1 ^
+  --buffer-size 8192 ^
+  --cache-features ^
+  --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
+   ```
 
-[1] Zhuang, Huiping, et al. "[ACIL: Analytic Class-Incremental Learning with Absolute Memorization and Privacy Protection.](https://proceedings.neurips.cc/paper_files/paper/2022/hash/4b74a42fc81fc7ee252f6bcb6e26c8be-Abstract-Conference.html)" Advances in Neural Information Processing Systems 35 (2022): 11602-11614.
+### 2、main(load_args())中传入的参数：
+   ``` txt
+   {
+     'method': 'ACIL',
+     'exp_name': 'ACIL',
+     'cpu_only': False,
+     'gpus': None,
+     'dataset': 'CIFAR-100',
+     'data_root': 'C:\\Users\\wang/dataset\\CIFAR-100',
+     'num_workers': 16,
+     'base_ratio': 0.5,
+     'phases': 25,
+     'batch_size': 256,
+     'cache_features': True,
+     'backbone': 'resnet32',
+     'cache_path': './backbones/resnet32_CIFAR-100_0.5_None',
+     'seed': None,
+     'dataset_seed': None,
+     'base_epochs': 300,
+     'warmup_epochs': 10,
+     'learning_rate': 0.5,
+     'momentum': 0.9,
+     'weight_decay': 0.0005,
+     'separate_decay': False,
+     'label_smoothing': 0.05,
+     'IL_batch_size': 4096,
+     'gamma': 0.1,
+     'buffer_size': 8192,
+     'gamma_comp': 0.1,
+     'sigma': 10,
+     'compensation_ratio': 1,
+     'backbone_path': './backbones/resnet32_CIFAR-100_0.5_None\\backbone.pth',
+     'saving_root': 'saved_models\\resnet32_CIFAR-100_0.5_None\\ACIL\\2026-05-17T14-08-26',
+     'argv': "['main.py', 'ACIL', '--dataset', 'CIFAR-100', '--base-ratio', '0.5', '--phases', '25', '--data-root', '~/dataset', '--IL-batch-size', '4096', '--num-workers', '16', '--backbone', 'resnet32', '--gamma', '0.1', '--buffer-size', '8192', '--cache-features', '--backbone-path', './backbones/resnet32_CIFAR-100_0.5_None']"
+   }
+   ```
+  
 
-[2] Zhuang, Huiping, et al. "[GKEAL: Gaussian Kernel Embedded Analytic Learning for Few-Shot Class Incremental Task.](https://openaccess.thecvf.com/content/CVPR2023/html/Zhuang_GKEAL_Gaussian_Kernel_Embedded_Analytic_Learning_for_Few-Shot_Class_Incremental_CVPR_2023_paper.html)" Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2023.
 
-[3] Zhuang, Huiping, et al. "[DS-AL: A Dual-Stream Analytic Learning for Exemplar-Free Class-Incremental Learning.](https://ojs.aaai.org/index.php/AAAI/article/view/29670)" Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 38. No. 15. 2024.
 
-[4] Zhuang, Huiping, et al. "[GACL: Exemplar-Free Generalized Analytic Continual Learning](https://neurips.cc/virtual/2024/poster/95330)" Advances in Neural Information Processing Systems 37 (2024). [[OpenReview]](https://openreview.net/forum?id=P6aJ7BqYlc) [[arXiv]](https://arxiv.org/abs/2403.15706)
+## 三、我的代码
+### 2.1 课程作业要求：
+  - 要求：
+    1. 您只能使用数据集的前半部分来强化骨干网络。在增量学习过程中使用该数据集会导致数据泄露，并且得出的结果也不会令人信服。
+    2. 这个项目需要团队合作。你应该找一个由 3 至 5 名学生组成的小组，并一起开展工作。
+    3. 将 ACIL 用作增量学习的基准。您应当使用另外一半类别来与 ACIL 进行增量学习，以便进行公平的比较。
+    4. 在本次任务中，推荐使用加州大学梅尔森分校的土地利用数据集。
+    5. 该模型架构推荐采用 ViT-B_16。由于本项目旨在强化骨干网络，直接使用参数更多的其他骨干网络可能会有效，但不够优雅。此外，参数较少的骨干网络训练速度更快。
+    6. 需要完成一份 5 页的项目报告以及一个配有幻灯片的口头报告。 报告和幻灯片都应使用英语，报告应按照模板撰写。口头报告可以用中文。
+  - 一些细节说明：
+    1. 每个类别有 100 张图片，后 20 张作为测试集
+    2. 训练 protocol 为 base phase 训练 11 类，后续每个 phase 训练 1 类（一共21类）
+    3. oral presentation 限制在 5 分钟内
+    后续结合大家的反馈补充
 
-[5] Zhuang, Huiping, et al. "[Online Analytic Exemplar-Free Continual Learning with Large Models for Imbalanced Autonomous Driving Task.](https://ieeexplore.ieee.org/document/10721370)" IEEE Transactions on Vehicular Technology (2024).
+### 2.2 我的代码实现：
+- 0、将老师给的图像数据集放到./my_dataset目录下，数据集结构如下：
+  ```
+  my_dataset
+  ├── UCMerced_LandUse
+      ├── Images
+          ├── class1
+              ├── img1.jpg
+              ├── img2.jpg
+              ...
+          ├── class2
+              ├── img1.jpg
+              ├── img2.jpg
+              ...
+          ...
+  ```
+  
+- 1、执行命令：
+    ```(bash)
+    python main.py ACIL ^
+    --dataset UCMerced_LandUse ^
+    --base-ratio 0.5238095238 ^
+    --phases 10 ^
+    --data-root ./my_dataset ^
+    --batch-size 16 ^
+    --num-workers 4 ^
+    --backbone vit_b_16 ^
+    --learning-rate 0.5 ^
+    --label-smoothing 0.05 ^
+    --base-epochs 300 ^
+    --weight-decay 5e-4 ^
+    --gamma 0.1 ^
+    --buffer-size 2048 ^
+    --cache-features ^
+    --IL-batch-size 64 ^
+     ```
+  - 注意： 
+    1. --dataset UCMerced_LandUse(需要修改为自己的数据集)
+    2. --base-ratio 0.5238095238(需要修改为 -> 11/20 ≈ 0.5238095238)
+    3. --phase 10(需要修改为10次增量学习阶段) 
+    4. --backbone vit_b_16(需要修改为vit_b_16模型架构)
+    5. --seed 520(设置随机数种子，保证结果可复现)
+    6. --dataset-seed 520(设置随机数种子，保证结果可复现)
+    7. --num-workers 4(根据自己的计算资源调整数据加载的线程数、window运行设置低一点？)
+    8. --IL-batch-size 64(根据自己的计算资源调整增量学习阶段的批量大小，我的只有8GB显存，设置为64)
+    9. --buffer-size 2048(根据自己的计算资源调整缓冲区大小，我的只有8GB显存，设置为2048)
+    10. --batch-size 16(根据自己的计算资源调整训练阶段的批量大小)
+  
+  - 保存到了./saved_models/vit_b_16_UCMerced_LandUse_0.5238095238_None/ACIL/2026-05-19T00-56-05文件夹
 
-[6] Fang, Di, et al. "[AIR: Analytic Imbalance Rectifier for Continual Learning.](https://arxiv.org/abs/2408.10349)" arXiv preprint arXiv:2408.10349 (2024).
+- 2、UCMerced.py
+  - 写了一个UCMerced_LandUse_类用于目标数据集，继承DatasetWrapper，实际上是一个数据集包装器，主要功能是加载数据集并进行预处理。
+  - 主要功能：
+    - _subset、subset_at_phase、subset_until_phase：根据情况返回数据集的子集，确保每个阶段使用特定类别的数据。
+    - basic_transform：基本的图像预处理方法，包括调整大小、中心裁剪和归一化等。（做测试集时采用）
+    - augment_transform：数据增强方法，包含随机裁剪、水平翻转和颜色抖动等。（做训练集时采用）
 
-![](figures/acc_cmp.jpg)
+- 3、结果
+  - 感觉数据预处理好花时间。
+  - 我运行的的base_trainning有问题，训练过程的loss从第几步开始全是nan了，可能是std和mean设置不对？还是我的学习率太高0.5？  
+    如图我的结果居然第二次训练就达到了0.975的准确率，是刚好运气好吗？第三次开始训练的损失就变得特别大，第四次就直接NAN了，真的可能是学习率太高？直接发散了
+    - ![我的结果0](figures/MY_README_img0.png)
+  - 验证结果：将saved的模型保存到./backbones目录下，因为之前的运行有错误，所以--cache-features缓存的特征也是错误的，导致增量学习阶段的训练也有问题，所以先不要使用--cache-features
+    ```(bash)
+    python main.py ACIL ^
+    --dataset UCMerced_LandUse ^
+    --base-ratio 0.5238095238 ^
+    --phases 10 ^
+    --data-root ./my_dataset ^
+    --IL-batch-size 64 ^
+    --num-workers 4 ^
+    --backbone vit_b_16 ^
+    --gamma 0.1 ^
+    --buffer-size 2048 ^
+    // --cache-features ^
+    --backbone-path ./backbones/vit_b_16_UCMerced_LandUse_0.5238095238_None
+    ```
+    - 结果如下：./saved_models/vit_b_16_UCMerced_LandUse_0.5238095238_None/ACIL/2026-05-19T11-13-02文件夹
+      - ![我的结果1](figures/MY_README_img1.png)
 
-**Welcome to join our Tencent QQ group: [954528161](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=qaK4W8Jw6d--VWHlx7iUs93T2qMJT9k_&authKey=5e8hSXX8rALjM12iGwrZ9BmRBP9iUfCuRGNCaZ3%2Bx0msiRFVcSwu%2FuZpeKig1XQH&noverify=0&group_code=954528161). Chinese tutorial is available at [Bilibili](https://www.bilibili.com/video/BV1wq421A7YM/).**
+- 4、修改UCMerced.py的标准差和均值
+  - .\my_dataset\UCMerced_LandUse\calculate_std_mean.py
+  - 发现与之前的标准差和均值很接近，所以觉得可能是learning-rate的问题？
+  - 修改标准差和均值以及learning-rate:
+  - 0.5 -> 0.05：./saved_models/vit_b_16_UCMerced_LandUse_0.5238095238_None/ACIL/2026-05-19T11-37-24
+  - 感觉还是太高了：改成0.05 -> 0.005：./saved_models/vit_b_16_UCMerced_LandUse_0.5238095238_None/ACIL/2026-05-19T12-24-51
+  - 0.005 -> 0.001：./saved_models/vit_b_16_UCMerced_LandUse_0.5238095238_None/ACIL/2026-05-19T12-24-51
+    ```(bash)
+    python main.py ACIL ^
+    --dataset UCMerced_LandUse ^
+    --base-ratio 0.5238095238 ^
+    --phases 10 ^
+    --data-root ./my_dataset ^
+    --batch-size 16 ^
+    --num-workers 4 ^
+    --backbone vit_b_16 ^
+    --learning-rate 0.001 ^
+    --label-smoothing 0.05 ^
+    --base-epochs 300 ^
+    --weight-decay 5e-4 ^
+    --gamma 0.1 ^
+    --buffer-size 2048 ^
+    --cache-features ^
+    --IL-batch-size 64 ^
+     ```
+  - 结果如下：几轮之后就达到了1.00的准确率，就不继续训练了，应该是数据集比较小，速度较快
+    - ![我的结果2](figures/MY_README_img2.png)
+  - 再进行验证：
+    ```(bash)
+    python main.py ACIL ^
+    --dataset UCMerced_LandUse ^
+    --base-ratio 0.5238095238 ^
+    --phases 10 ^
+    --data-root ./my_dataset ^
+    --IL-batch-size 64 ^
+    --num-workers 4 ^
+    --backbone vit_b_16 ^
+    --gamma 0.1 ^
+    --buffer-size 2048 ^
+    // --cache-features ^ 因为还没有进行特征缓存，所以先不要使用--cache-features
+    --backbone-path ./backbones/vit_b_16_UCMerced_LandUse_0.5238095238_None
+    ```
+  - 最终结果如下：
+    - ![我的结果3](figures/MY_README_img3.png)
 
-## Dual Branch
 
-We have a dual branch at "[Analytic Federated Learning.](https://github.com/ZHUANGHP/Analytic-federated-learning)" 
 
-## Environment
-We recommend using the [Anaconda](https://anaconda.org/) to install the development environment.
+### 2.3 代码解读：
+1. ACIL类就是在骨干网络后的分类器进行解析解的模块网络
+  - self.buffer = RandomBuffer(backbone_output, buffer_size, **factory_kwargs)：RandomBuffer层它不学习，不更新，只“缓存”一个固定的随机映射矩阵。
+  - self.analytic_linear = linear(buffer_size, gamma, **factory_kwargs)：AnalyticLinear层进行解析式线性分类。
+  - AnalyticLinear层->继承自线性层不使用反向传播，解析式持续学习的重要部分！out_features 是动态增长的。fit方法实现了增量学习的核心逻辑，使用当前批次的数据更新解析式线性层的权重。
 
-```bash
-git clone --depth=1 git@github.com:ZHUANGHP/Analytic-continual-learning.git
+2. ACILLearner类继承自Learner类，主要实现了增量学习的训练过程：
+  - base_training：用常规监督学习训练骨干网络，载入ViT-B_16架构，并且只使用（11/21）类数据。  
+    每个epoch：训练时对训练集进行了一次训练加一次验证式评估，对验证集进行一次评估，最后得到best_acc保存最好的一个。
+  - make_model：创建ACIL模型，载入预训练的骨干网络权重，并且冻结骨干网络的参数。
+  - learn：增量学习阶段的训练过程，主要调用：self.model.fit(X, y, increase_size=incremental_size)：用当前batch更新解析式线性层（ACIL的增量更新逻辑）
+  - before_validation：在进行验证前，对ACIL模型进行参数更新学习。
+  - inference：在验证阶段，使用ACIL模型进行推理，得到预测结果。
+  - wrap_data_parallel：如果使用多GPU训练，使用DataParallel包装ACIL模型。（没用到）
 
-cd Analytic-continual-learning
-conda env create -f environment.yaml
-conda activate AL
-
-mkdir backbones
-```
-
-Download the pre-train weight at the [release page](https://github.com/ZHUANGHP/Analytic-continual-learning/releases) for quick start. We suggest you to extract the pre-train backbone (zip file) under the `backbones` folder.
-
-For the macOS users and the CPU-only users, you need deleted the items related to CUDA in the `environment.yaml` file.
-
-We highly recommend you to run our code in Linux. Windows and macOS users are also welcome to submit issues if they have problems running the code.
-
-## Quick Start
-Put the base training weights (provided at the [release page](https://github.com/ZHUANGHP/Analytic-continual-learning/releases)) at the `backbones` directory. Gradients are not used in continuous learning. **You can run our code even on CPUs.**
-
-Here are some examples.
-
-```bash
-# ACIL (CIFAR-100, B50 25 phases)
-python main.py ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 \
-    --gamma 0.1 --buffer-size 8192 \
-    --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
-```
-```bash
-# G-ACIL (CIFAR-100, B50 25 phases)
-python main.py G-ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 \
-    --gamma 0.1 --buffer-size 8192 \
-    --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
-```
-```bash
-# GKEAL (CIFAR-100, B50 10 phases)
-python main.py GKEAL --dataset CIFAR-100 --base-ratio 0.5 --phases 10 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 \
-    --gamma 0.1 --sigma 10 --buffer-size 8192 \
-    --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
-```
-```bash
-# DS-AL (CIFAR-100, B50 50 phases)
-python main.py DS-AL --dataset CIFAR-100 --base-ratio 0.5 --phases 50 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet32 \
-    --gamma 0.1 --gamma-comp 0.1 --compensation-ratio 0.6 --buffer-size 8192 \
-    --cache-features --backbone-path ./backbones/resnet32_CIFAR-100_0.5_None
-```
-```bash
-# DS-AL (ImageNet-1k, B50 20 phases)
-python main.py DS-AL --dataset ImageNet-1k --base-ratio 0.5 --phases 20 \
-    --data-root ~/dataset --IL-batch-size 4096 --num-workers 16 --backbone resnet18 \
-    --gamma 0.1 --gamma-comp 0.1 --compensation-ratio 1.5 --buffer-size 16384 \
-    --cache-features --backbone-path ./backbones/resnet18_ImageNet-1k_0.5_None
-```
-
-## Training From Scratch
-
-```bash
-# ACIL (CIFAR-100)
-python main.py ACIL --dataset CIFAR-100 --base-ratio 0.5 --phases 25 \
-    --data-root ~/dataset --batch-size 256 --num-workers 16 --backbone resnet32 \
-    --learning-rate 0.5 --label-smoothing 0 --base-epochs 300 --weight-decay 5e-4 \
-    --gamma 0.1 --buffer-size 8192 --cache-features --IL-batch-size 4096
-```
-```bash
-# ACIL (ImageNet-1k)
-python main.py ACIL --dataset ImageNet-1k --base-ratio 0.5 --phases 25 \
-    --data-root ~/dataset --batch-size 256 --num-workers 16 --backbone resnet18 \
-    --learning-rate 0.5 --label-smoothing 0.05 --base-epochs 300 --weight-decay 5e-5 \
-    --gamma 0.1 --buffer-size 16384 --cache-features --IL-batch-size 4096
-```
-
-## Reproduction Details
-
-### Difference Between the ACIL and the G-ACIL
-
-The G-ACIL is a general version of the ACIL for the general CIL setting. For the tradition CIL setting, the G-ACIL is equivalent to the ACIL. Thus, we use the same implementation in this repository.
-
-### Benchmarks (B50, 25 phases, with `TrivialAugmentWide`)
-
-Metrics are shown in 95% confidence intervals ($\mu \pm 1.96\sigma$).
-
-|   Dataset   | Method         | Backbone  | Buffer Size | Average Accuracy (%) | Last Phase Accuracy (%) |
-| :---------: | :------------: | :-------: | :---------: | :------------------: | :---------------------: |
-|  CIFAR-100  |  ACIL & G-ACIL | ResNet-32 |    8192     |   $71.047\pm0.252$   |    $63.384\pm0.330$     |
-|  CIFAR-100  |  DS-AL         | ResNet-32 |    8192     |   $71.277\pm0.251$   |    $64.043\pm0.184$     |
-|  CIFAR-100  |  GKEAL         | ResNet-32 |    8192     |   $70.371\pm0.168$   |    $62.301\pm0.191$     |
-| ImageNet-1k |  ACIL & G-ACIL | ResNet-18 |    16384    |   $67.497\pm0.092$   |    $58.349\pm0.111$     |
-| ImageNet-1k |  DS-AL         | ResNet-18 |    16384    |   $68.354\pm0.084$   |    $59.762\pm0.086$     |
-| ImageNet-1k |  GKEAL         | ResNet-18 |    16384    |   $66.881\pm0.061$   |    $57.295\pm0.105$     |
-
-![Top-1 Accuracy](figures/acc@1.svg)
-
-### Hyper-Parameters (Analytic Continual Learning)
-The backbones are frozen during the incremental learning process of our algorithm. You can use the `--cache-features` option to save the features output by the backbones to improve the efficiency of parameter adjustment.
-
-1. **Buffer Size**
-
-    For the ACIL, the buffer size means the *expansion size* of the random projection layer. For the GKEAL, the buffer size means the number of *center vectors* of the *Gaussian kernel embedding*. We summarize the "random projection" and the "Gaussian projection" into one concept "buffer" in the DS-AL.
-
-    On most datasets, the performance of the algorithm first increases and then decreases as the buffer size increases. You can see further experiments on this hyperparameter in our papers. We recommend using a buffer size of 8192 on CIFAR-100 and 16384 or greater on ImageNet for optimal performance. A larger buffer size requires more memory.
-
-2. **$\gamma$ (Coefficient of the Regularization Term)**
-
-    For the dataset used in the papers, $\gamma$ is insensitive within a interval. However, a $\gamma$ that is too small may cause numerical stability problems in matrix inversion, and a $\gamma$ that is too large may cause under-fitting of the classifier. On both CIFAR-100 and ImageNet-1k, $\gamma$ is 0.1. When you migrate our algorithm to other datasets, we still recommend that you do some experiments to check whether $\gamma$ is appropriate.
-
-3. **$\beta$ and $\sigma$ (GKEAL Only)**
-
-    In the GKEAL, the width-adjusting parameter $\beta$ controls the width of the Gaussian kernels. There is a comfortable range for $\sigma$ at around $[5, 15]$ for CIFAR-100 and ImageNet-1k that gives good results, where $\beta = \frac{1}{2\sigma^2}$.
-
-4. **Compensation Ratio $\mathcal{C}$ (DS-AL Only)**
-
-    We recommend using the grid search to find the best compensation ratio in the interval $[0, 2]$. The best value is 0.6 for the CIFAR-100, while the best value for the ImageNet-1k is 1.5.
-
-Further analysis on hyper-parameters are shown in our papers.
-
-### Hyper-Parameters (Base Training)
-In the base training process, the backbones reaches over 80% top-1 accuracy on the first half of CIFAR-100 (ResNet-32) and ImageNet-1k (ResNet-18). Important hyper-parameters are listed below.
-
-1. **Learning Rate**
-
-    In this implementation, we use a cosine scheduler instead of choosing the same piece-wise smooth scheduler as in the papers to reduce the number of hyper-parameters. We recommend using a learning rate of 0.5 (when the batch size is 256) on CIFAR-100 and ImageNet-1k to obtain better convergence. The number of epochs we use for provided backbones is 300.
-
-2. **Label Smoothing and Weight Decay**
-
-    Properly setting label smoothing and weight decay can help prevent over-fitting of the backbone. In CIFAR-100, label smoothing is not significantly helpful; while in ImageNet-1k, we empirically selected 0.05. For CIFAR-100, we choose a weight decay of 5e-4, while in ImageNet-1k, this value is 5e-5.
-
-3. **Image Augmentation**
-
-    Using image augmentation to obtain a more generalizable backbone in the base training dataset can significantly improve performance. No image augmentation is used in the experiments of our papers. But in this implementation, data augmentation is enabled on by default. **So using this implementation will achieve higher performance than reported in the papers (about 2%~5%)**.
-
-    Note that we do not use any data augmentation during the re-alignment and the continual learning processes because each sample will be learned only once.
-
-# Cite Our Papers
-
-```bib
-@InProceedings{ACIL_Zhuang_NeurIPS2022,
-    author    = {Zhuang, Huiping and Weng, Zhenyu and Wei, Hongxin and Xie, Renchunzi and Toh, Kar-Ann and Lin, Zhiping},
-    title     = {{ACIL}: Analytic Class-Incremental Learning with Absolute Memorization and Privacy Protection},
-    booktitle = {Advances in Neural Information Processing Systems},
-    editor    = {S. Koyejo and S. Mohamed and A. Agarwal and D. Belgrave and K. Cho and A. Oh},
-    pages     = {11602--11614},
-    publisher = {Curran Associates, Inc.},
-    volume    = {35},
-    year      = {2022},
-    url       = {https://proceedings.neurips.cc/paper_files/paper/2022/file/4b74a42fc81fc7ee252f6bcb6e26c8be-Paper-Conference.pdf}
-}
-
-@InProceedings{GKEAL_Zhuang_CVPR2023,
-    author    = {Zhuang, Huiping and Weng, Zhenyu and He, Run and Lin, Zhiping and Zeng, Ziqian},
-    title     = {{GKEAL}: Gaussian Kernel Embedded Analytic Learning for Few-Shot Class Incremental Task},
-    booktitle = {2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-    month     = jun,
-    year      = {2023},
-    pages     = {7746--7755},
-    doi       = {10.1109/CVPR52729.2023.00748}
-}
-
-@Article{DS-AL_Zhuang_AAAI2024,
-    title   = {{DS-AL}: A Dual-Stream Analytic Learning for Exemplar-Free Class-Incremental Learning},
-    author  = {Zhuang, Huiping and He, Run and Tong, Kai and Zeng, Ziqian and Chen, Cen and Lin, Zhiping},
-    journal = {Proceedings of the AAAI Conference on Artificial Intelligence},
-    volume  = {38},
-    number  = {15},
-    pages   = {17237--17244},
-    year    = {2024},
-    month   = mar,
-    doi     = {10.1609/aaai.v38i15.29670},
-    url     = {https://ojs.aaai.org/index.php/AAAI/Article/view/29670}
-}
-
-@InProceedings{GACL_Zhuang_NeurIPS2024,
-    title     = {{GACL}: Exemplar-Free Generalized Analytic Continual Learning},
-    author    = {Huiping Zhuang and Yizhu Chen and Di Fang and Run He and Kai Tong and Hongxin Wei and Ziqian Zeng and Cen Chen},
-    year      = {2024},
-    booktitle = {Advances in Neural Information Processing Systems},
-    publisher = {Curran Associates, Inc.},
-    month     = dec
-}
-
-@article{AEF-OCL_Zhuang_TVT2024,
-    title   = {Online Analytic Exemplar-Free Continual Learning with Large Models for Imbalanced Autonomous Driving Task},
-    author  = {Zhuang, Huiping and Fang, Di and Tong, Kai and Liu, Yuchen and Zeng, Ziqian and Zhou, Xu and Chen, Cen},
-    year    = {2024},
-    journal = {IEEE Transactions on Vehicular Technology},
-    pages   = {1-10},
-    doi     = {10.1109/TVT.2024.3483557}
-}
-
-@misc{AIR_Fang_arXiv2024,
-    title         = {{AIR}: Analytic Imbalance Rectifier for Continual Learning}, 
-    author        = {Di Fang and Yinan Zhu and Zhiping Lin and Cen Chen and Ziqian Zeng and Huiping Zhuang},
-    year          = {2024},
-    month         = aug,
-    archivePrefix = {arXiv},
-    primaryClass  = {cs.LG},
-    eprint        = {2408.10349},
-    doi           = {10.48550/arXiv.2408.10349},
-    url           = {https://arxiv.org/abs/2408.10349},
-}
-```
+3. 增量学习阶段的训练过程会用到缓存的数据集特征？  
+  - 好像没有:for phase in range(0, args["phases"] + 1)后的代码，每一个phase的训练都是新的训练数据，测试集倒是包括之前所有用到的数据
