@@ -67,7 +67,7 @@
 
 
 ## 三、我的代码
-### 2.1 课程作业要求：
+### 3.1 课程作业要求：
   - 要求：
     1. 您只能使用数据集的前半部分来强化骨干网络。在增量学习过程中使用该数据集会导致数据泄露，并且得出的结果也不会令人信服。
     2. 这个项目需要团队合作。你应该找一个由 3 至 5 名学生组成的小组，并一起开展工作。
@@ -81,7 +81,7 @@
     3. oral presentation 限制在 5 分钟内
     后续结合大家的反馈补充
 
-### 2.2 我的代码实现：
+### 3.2 我的代码实现：
 - 0、将老师给的图像数据集放到./my_dataset目录下，数据集结构如下：
   ```
   my_dataset
@@ -208,20 +208,39 @@
 
 
 
-### 2.3 代码解读：
-1. ACIL类就是在骨干网络后的分类器进行解析解的模块网络
+### 3.3 代码解读：
+- 1、ACIL类就是在骨干网络后的分类器进行解析解的模块网络
   - self.buffer = RandomBuffer(backbone_output, buffer_size, **factory_kwargs)：RandomBuffer层它不学习，不更新，只“缓存”一个固定的随机映射矩阵。
   - self.analytic_linear = linear(buffer_size, gamma, **factory_kwargs)：AnalyticLinear层进行解析式线性分类。
   - AnalyticLinear层->继承自线性层不使用反向传播，解析式持续学习的重要部分！out_features 是动态增长的。fit方法实现了增量学习的核心逻辑，使用当前批次的数据更新解析式线性层的权重。
 
-2. ACILLearner类继承自Learner类，主要实现了增量学习的训练过程：
+- 2、ACILLearner类继承自Learner类，主要实现了增量学习的训练过程：
   - base_training：用常规监督学习训练骨干网络，载入ViT-B_16架构，并且只使用（11/21）类数据。  
     每个epoch：训练时对训练集进行了一次训练加一次验证式评估，对验证集进行一次评估，最后得到best_acc保存最好的一个。
-  - make_model：创建ACIL模型，载入预训练的骨干网络权重，并且冻结骨干网络的参数。
-  - learn：增量学习阶段的训练过程，主要调用：self.model.fit(X, y, increase_size=incremental_size)：用当前batch更新解析式线性层（ACIL的增量更新逻辑）
-  - before_validation：在进行验证前，对ACIL模型进行参数更新学习。
+  - make_model：创建ACIL模型，载入预训练的骨干网络权重，并且冻结骨干网络的参数。（隐式的冻结：ACIL.__init__末尾调用self.eval()，且所有方法使用@torch.no_grad()装饰，因此增量学习阶段不会更新骨干网络参数）
+  - learn：增量学习阶段的训练过程，遍历数据加载器，对每个batch调用self.model.fit(X, y),用当前batch更新解析式线性层，这就是ACIL的增量更新逻辑。（注意：虽然传入了increase_size参数，但ACIL.fit()并未将其传递给底层RecursiveLinear.fit()——RecursiveLinear通过one-hot标签的shape自动判断新增类别数，increase_size在当前实现中实际被忽略。）
+  - before_validation：在进行验证前，调用self.model.update()。对于RecursiveLinear（本配置使用），update()仅做数值稳定性断言检查（assert torch.isfinite），真正的权重更新已在fit()中完成。对于GeneralizedARM变体，update()才会计算最终的权重矩阵（本配置未使用）。
   - inference：在验证阶段，使用ACIL模型进行推理，得到预测结果。
   - wrap_data_parallel：如果使用多GPU训练，使用DataParallel包装ACIL模型。（没用到）
 
-3. 增量学习阶段的训练过程会用到缓存的数据集特征？  
-  - 好像没有:for phase in range(0, args["phases"] + 1)后的代码，每一个phase的训练都是新的训练数据，测试集倒是包括之前所有用到的数据
+- 3、增量学习阶段的数据使用：
+  - 启用--cache-features时：base_training后会将所有数据通过backbone提取特征并保存为.pt文件，然后用Features数据集加载缓存的特征，backbone替换为nn.Identity()，增量学习阶段直接使用缓存的backbone特征而非原始图像。
+  - 未启用--cache-features时：每个phase重新通过backbone处理原始图像。
+  - 训练/测试范围：for phase in range(0, args["phases"] + 1)中，train_subset = subset_at_phase(phase)只取当前phase的新类别数据，test_subset = subset_until_phase(phase)取所有已见过类别的数据。
+
+- 4、整个流程：
+  - base_training阶段构建了一个普通的 backbone + Linear 模型，用标准 SGD + CrossEntropyLoss 训练。全程没有用到 ACIL（RandomBuffer + AnalyticLinear）。ACIL 模型是在 base_training 结束后，由第216行 self.make_model() 才创建的。
+  - 增量学习阶段（phase 0）：Phase 0 称为 Re-align（重对齐），它用全部11个基类数据初始化 ACIL 的解析式线性层。原因是：骨干网络是用 SGD 训练的，现在需要把它的特征空间"迁移"到 ACIL 的解析式分类器上。
+  - 增量学习阶段（phase 1-10）：增量学习阶段只用新类数据、没用旧类数据。
+  - 完整流程：
+    ```txt
+    base_training:  backbone + Linear, SGD训练, 用11个基类
+        ↓
+    Phase 0 (Re-align):  用11个基类数据 → 初始化ACIL的RecursiveLinear
+        ↓
+    Phase 1:  用1个新类数据 → ACIL增量更新权重（R矩阵保留旧知识）
+        ↓
+    Phase 2~10:  同上，每次1个新类
+    ```
+- 5、关键机制：
+  - 虽然每个 phase 只用新类数据训练，但 ACIL 通过 RecursiveLinear 中的 R 矩阵（Regularized Feature Autocorrelation Matrix）保留了所有历史类别的统计信息。新类来时，通过 AnalyticLinear.py:124-128 的矩阵运算公式同时更新 R 和权重，旧类知识不会灾难性遗忘——这正是 ACIL "解析式持续学习"的核心优势。
