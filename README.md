@@ -1,5 +1,7 @@
 # 我的README
 - 本仓库是庄老师的持续学习仓库，做课设时把项目存到我的仓库并且改名为ACIL_learning
+- 重点解析公式！！！
+  ![解析公式](figures/MY_README_img4.png)
 
 ## 一、环境配置
 - 1、创建虚拟环境
@@ -244,3 +246,6 @@
     ```
 - 5、关键机制：
   - 虽然每个 phase 只用新类数据训练，但 ACIL 通过 RecursiveLinear 中的 R 矩阵（Regularized Feature Autocorrelation Matrix）保留了所有历史类别的统计信息。新类来时，通过 AnalyticLinear.py:124-128 的矩阵运算公式同时更新 R 和权重，旧类知识不会灾难性遗忘——这正是 ACIL "解析式持续学习"的核心优势。
+
+## 四、ClaudeCode解析代码
+- [CODE_ANALYSIS-MarkDown文档](CODE_ANALYSIS.md)
