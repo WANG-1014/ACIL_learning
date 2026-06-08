@@ -604,6 +604,7 @@ def fit(self, X, Y):
     # Y - X @ self.weight: 当前模型在新数据上的残差
     # R @ X.T @ residual: 最优权重校正量
 ```
+![alt text](/figures/MY_README_img6.png)
 
 **递归最小二乘的直观理解**：
 - `R` 是全体历史数据协方差矩阵的逆 → 编码了"数据分布"
