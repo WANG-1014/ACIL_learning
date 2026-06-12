@@ -258,7 +258,7 @@
 
 ## 四、实现其它任务（消融实验）
 - [深度学习课设任务要求.pdf](<Deep Learning Project 2026 Spring_PostGraduate.pdf>)
-### 4.1 进行实验（）：
+### 4.1 进行实验（Exp_Base）：
 - 1、进行基础实验： 
   - 发现3.2中我的实现，忘记加入随机数种子了：
     - --seed 控制训练时的随机性
@@ -302,9 +302,47 @@
     | 9 | 0.9420913504065593 | 0.9025 | 0.99 | 0.9025 | 2.2619689590365066 |
     | 10 | 0.9373990631401622 | 0.8904761904761904 | 0.9785714285714285 | 0.8904761904761904 | 2.3292538600186052 |
 
-### 4.2 加入SLA后的实验：
+### 4.2 加入SLA后的实验（Exp_SLA）：
+- 1、SLA的实现
+  - 只应用于 backbone 的基础训练阶段，对每张图像生成四种旋转：`0°、90°、180°、270°`
+  - 将原始类别和旋转编号组成联合标签：`joint_label = class_label * 4 + rotation_id`
+  - 每个 batch 依次处理四种旋转，分别计算损失，并累积平均梯度：`loss = CrossEntropy(logits, joint_label) / 4`
+  - 验证时分别输入四种旋转图像，从 44 维结果中提取对应旋转的类别分数，再进行平均，恢复为 11 类预测。
+  - 基础训练结束后丢弃 44 类联合分类头，只保留增强后的 ViT backbone。后续特征缓存和 ACIL 增量学习流程保持不变。
+- 2、SLA的作用
+  - SLA 不只是普通旋转数据增强，而是让模型同时学习：图像是什么类别 + 图像发生了什么旋转。
+  - 主要作用包括：
+    - 增加每张基础图像提供的监督信息；
+    - 迫使 ViT 学习方向、布局和空间结构；
+    - 减少模型只依赖纹理或背景等简单特征；
+    - 缓解 ViT 在 UCMerced 小数据集上的过拟合；
+    - 提高 backbone 特征的丰富性和泛化能力；
+    - 使冻结后的 backbone 更有可能区分后续增量类别。
 
-
+- 3、进行添加SLA后的实验
+  - 这里添加了SLA进行BackBone的训练，耗时太久了，查看了一下Exp_Base的base_training，发现最优的是第17轮，相当于最后保存的模型应该是第17轮，我后续的实验就设置20轮了：--base-epochs 20。
+  - 运行代码：
+      ```(bash)
+      python main.py ACIL `
+      --dataset UCMerced_LandUse `
+      --base-ratio 0.524 `
+      --phases 10 `
+      --data-root ./my_dataset `
+      --seed 520 `
+      --batch-size 16 `
+      --num-workers 4 `
+      --backbone vit_b_16 `
+      --learning-rate 0.001 `
+      --label-smoothing 0.05 `
+      --base-epochs 20 `
+      --weight-decay 5e-4 `
+      --gamma 0.1 `
+      --buffer-size 2048 `
+      --cache-features `
+      --IL-batch-size 64 `
+      --sla `
+      --exp-name My_Exp_SLA
+      ```
 
 ## 五、ClaudeCode解析代码
 - [CODE_ANALYSIS-MarkDown文档](CODE_ANALYSIS.md)

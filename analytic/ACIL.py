@@ -25,6 +25,47 @@ from .Learner import Learner, loader_t
 from .AnalyticLinear import AnalyticLinear, RecursiveLinear
 
 
+SLA_NUM_TRANSFORMS = 4
+
+
+def make_sla_labels(
+    labels: torch.Tensor,
+    rotation_id: int,
+    num_transforms: int = SLA_NUM_TRANSFORMS,
+) -> torch.Tensor:
+    if not 0 <= rotation_id < num_transforms:
+        raise ValueError(f"rotation_id must be in [0, {num_transforms})")
+    return labels * num_transforms + rotation_id
+
+
+class SLAAggregatedInference(torch.nn.Module):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        num_classes: int,
+        num_transforms: int = SLA_NUM_TRANSFORMS,
+    ) -> None:
+        super().__init__()
+        self.model = model
+        self.num_classes = num_classes
+        self.num_transforms = num_transforms
+
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        aggregated_logits = None
+        for rotation_id in range(self.num_transforms):
+            rotated_X = torch.rot90(X, rotation_id, dims=(-2, -1))
+            joint_logits = self.model(rotated_X).reshape(
+                X.shape[0], self.num_classes, self.num_transforms
+            )
+            class_logits = joint_logits[:, :, rotation_id]
+            if aggregated_logits is None:
+                aggregated_logits = class_logits
+            else:
+                aggregated_logits = aggregated_logits + class_logits
+        assert aggregated_logits is not None
+        return aggregated_logits / self.num_transforms
+
+
 class ACIL(torch.nn.Module):
     def __init__(
         self,
@@ -85,6 +126,7 @@ class ACILLearner(Learner):
         self.gamma: float = args["gamma"]
         self.base_epochs: int = args["base_epochs"]
         self.warmup_epochs: int = args["warmup_epochs"]
+        self.sla: bool = args.get("sla", False)
         self.make_model()
 
     def base_training(
@@ -93,11 +135,17 @@ class ACILLearner(Learner):
         val_loader: loader_t,
         baseset_size: int,
     ) -> None:
+        classifier_size = (
+            baseset_size * SLA_NUM_TRANSFORMS if self.sla else baseset_size
+        )
         model = torch.nn.Sequential(
             self.backbone,
-            torch.nn.Linear(self.backbone_output, baseset_size),
+            torch.nn.Linear(self.backbone_output, classifier_size),
         ).to(self.device, non_blocking=True)
         model = self.wrap_data_parallel(model)
+        validation_model = (
+            SLAAggregatedInference(model, baseset_size) if self.sla else model
+        )
 
         if self.args["separate_decay"]:
             params = set_weight_decay(model, self.args["weight_decay"])
@@ -159,16 +207,29 @@ class ACILLearner(Learner):
                     assert y.max() < baseset_size
 
                     optimizer.zero_grad(set_to_none=True)
-                    logits = model(X)
-                    loss: torch.Tensor = criterion(logits, y)
-                    loss.backward()
+                    if self.sla:
+                        for rotation_id in range(SLA_NUM_TRANSFORMS):
+                            rotated_X = torch.rot90(X, rotation_id, dims=(-2, -1))
+                            joint_y = make_sla_labels(y, rotation_id)
+                            assert joint_y.min() >= 0
+                            assert joint_y.max() < classifier_size
+                            logits = model(rotated_X)
+                            loss = criterion(logits, joint_y) / SLA_NUM_TRANSFORMS
+                            loss.backward()
+                    else:
+                        logits = model(X)
+                        loss = criterion(logits, y)
+                        loss.backward()
                     optimizer.step()
                 scheduler.step()
 
             # Validation on training set
             model.eval()
             train_meter = validate(
-                model, train_loader, baseset_size, desc="Training (Validation)"
+                validation_model,
+                train_loader,
+                baseset_size,
+                desc="Training (Validation)",
             )
             print(
                 f"loss: {train_meter.loss:.4f}",
@@ -178,7 +239,9 @@ class ACILLearner(Learner):
                 sep="    ",
             )
 
-            val_meter = validate(model, val_loader, baseset_size, desc="Testing")
+            val_meter = validate(
+                validation_model, val_loader, baseset_size, desc="Testing"
+            )
             if val_meter.accuracy > best_acc:
                 best_acc = val_meter.accuracy
                 if epoch != 0:

@@ -197,6 +197,12 @@ _base_group.add_argument(
 
 _base_group.add_argument("--label-smoothing", default=0.05, type=float)
 
+_base_group.add_argument(
+    "--sla",
+    action="store_true",
+    help="Use four-rotation self-supervised label augmentation in base training.",
+)
+
 # IL hyper-parameters
 _il_group = _parser.add_argument_group("IL Hyper-parameters")
 
