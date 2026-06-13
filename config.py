@@ -152,6 +152,12 @@ _model_group.add_argument(
 _base_group = _parser.add_argument_group("Base training arguments")
 
 _base_group.add_argument(
+    "--base",
+    action="store_true",
+    help="Mark this run as the baseline experiment without changing training behavior.",
+)
+
+_base_group.add_argument(
     "--base-epochs",
     default=300,
     type=int,
