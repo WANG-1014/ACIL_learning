@@ -176,6 +176,7 @@ class ACILLearner(Learner):
         ).to(self.device, non_blocking=True)
 
         best_acc = 0.0
+        best_loss = float("inf")
         logging_file_path = path.join(self.args["saving_root"], "base_training.csv")
         logging_file = open(logging_file_path, "w", buffering=1)
         print(
@@ -249,6 +250,12 @@ class ACILLearner(Learner):
                         (self.backbone, X.shape[1], self.backbone_output),
                         "backbone.pth",
                     )
+            if epoch != 0 and val_meter.loss < best_loss:
+                best_loss = val_meter.loss
+                self.save_object(
+                    (self.backbone, X.shape[1], self.backbone_output),
+                    "backbone_loss.pth",
+                )
 
             # Validation on testing set
             print(
@@ -274,6 +281,10 @@ class ACILLearner(Learner):
                 file=logging_file,
                 sep=",",
             )
+        self.save_object(
+            (self.backbone, X.shape[1], self.backbone_output),
+            "backbone_last.pth",
+        )
         logging_file.close()
         self.backbone.eval()
         self.make_model()
