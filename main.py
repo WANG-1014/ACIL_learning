@@ -109,7 +109,11 @@ def main(args: Dict[str, Any]):
         "num_phases": args["phases"],
         "shuffle_seed": args["dataset_seed"] if "dataset_seed" in args else None,
     }
-    dataset_train = load_dataset(train=True, augment=False, **dataset_args)
+    dataset_train = load_dataset(
+        train=True,
+        augment=not args["base"],
+        **dataset_args,
+    )
     dataset_test = load_dataset(train=False, augment=False, **dataset_args)
 
     # Select algorithm

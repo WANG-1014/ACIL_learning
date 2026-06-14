@@ -154,7 +154,7 @@ _base_group = _parser.add_argument_group("Base training arguments")
 _base_group.add_argument(
     "--base",
     action="store_true",
-    help="Mark this run as the baseline experiment without changing training behavior.",
+    help="Disable data augmentation during base training.",
 )
 
 _base_group.add_argument(
